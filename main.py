@@ -45,10 +45,10 @@ def main():
             downloader.downloadLinks(game_name)
             ua.unarchive()
             break
-            if auto == 1:
-                sleep(10)
-                sr.setup(permission, selectlanguage, mute, next)
-                break
+        if auto == 1:
+            sleep(10)
+            sr.setup(permission, selectlanguage, mute, next)
+            break
         elif answer == 0:
             print('Program is closing...')
             sleep(5)
