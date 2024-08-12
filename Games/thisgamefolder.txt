@@ -1,0 +1,1 @@
+After downloading, these games will be automatically extracted from the RAR archive into the folder where they were downloaded.
