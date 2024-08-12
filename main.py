@@ -44,6 +44,7 @@ def main():
             sleep(1)
             downloader.downloadLinks(game_name)
             ua.unarchive()
+            break
             if auto == 1:
                 sleep(10)
                 sr.setup(permission, selectlanguage, mute, next)
