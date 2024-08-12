@@ -28,9 +28,3 @@ def setup(selectlanguage, mute, next):
             py.click(next)
     else:
         print(f"setup.exe file does not exist: {setup_path}")
-
-#yönetici izin Point(x=581, y=509)
-#dil seçim Point(x=693, y=418)
-#SES Point(x=461, y=528)
-#next Point(x=809, y=534)
-#4 tıklama
