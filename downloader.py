@@ -22,6 +22,26 @@ def clean_file_name(file_name):
     cleaned_name = cleaned_name.strip()
     return cleaned_name
 
+def get_javascript_urls(game_url: str):
+    response = requests.get(game_url)
+    soup = bs(response.text, 'html.parser')
+    scripts = soup.find_all('script')
+    urls = []
+    for script in scripts:
+        if script.string:
+            matches = re.findall(r'window\.open\(["\'](https?://[^\s"\']+)["\']', script.string)
+            urls.extend(matches)
+    return urls
+
+def get_file_name(game_url: str):
+    response = requests.get(game_url)
+    soup = bs(response.text, 'html.parser')
+    span = soup.find('span', class_='text-xl')
+    if span:
+        raw_file_name = span.get_text(strip=True)
+        return clean_file_name(raw_file_name)
+    return None
+
 def getlink(link, file_name):
     folder_name = 'Games'
     if not os.path.exists(folder_name):
@@ -71,26 +91,6 @@ def getlink(link, file_name):
     os.rename(temp_file_path, file_path)
     print(f"File successfully saved to: {file_path}")
 
-def get_file_name(game_url: str):
-    response = requests.get(game_url)
-    soup = bs(response.text, 'html.parser')
-    span = soup.find('span', class_='text-xl')
-    if span:
-        raw_file_name = span.get_text(strip=True)
-        return clean_file_name(raw_file_name)
-    return None
-
-def getjavascripturls(game_url: str):
-    response = requests.get(game_url)
-    soup = bs(response.text, 'html.parser')
-    scripts = soup.find_all('script')
-    urls = []
-    for script in scripts:
-        if script.string:
-            matches = re.findall(r'window\.open\(["\'](https?://[^\s"\']+)["\']', script.string)
-            urls.extend(matches)
-    return urls
-
 def downloadLinks(game_name: str):
     url = f"https://fitgirl-repacks.site/{game_name}"
     response = requests.get(url)
@@ -99,31 +99,26 @@ def downloadLinks(game_name: str):
     links = soup.find_all('a')
     downloaded_urls = set()
 
-    if len(links) == 1:
-        game_link = links[0].get('href')
-        if game_link:
-            game_link = fix_url_scheme(game_link)
-            javascript_urls = getjavascripturls(game_link)
-            for url in javascript_urls:
-                url = fix_url_scheme(url)
-                if url not in downloaded_urls:
-                    downloaded_urls.add(url)
-                    file_name = get_file_name(game_link)
-                    if not file_name:
-                        file_name = generate_random_filename()
-                    getlink(url, file_name)
-        return
-
     for link in links:
         game_link = link.get('href')
         if game_link and "fuckingfast.co/" in game_link:
             game_link = fix_url_scheme(game_link)
-            javascript_urls = getjavascripturls(game_link)
+            javascript_urls = get_javascript_urls(game_link)
             for url in javascript_urls:
                 url = fix_url_scheme(url)
                 if url not in downloaded_urls:
                     downloaded_urls.add(url)
                     file_name = get_file_name(game_link)
-                    if not file_name:
+                    if file_name:
+                        # Skip optional files
+                        if "optional" in file_name.lower():
+                            print(f"Skipping optional file: {file_name}")
+                        # Only download selective files that contain 'english'
+                        elif "selective" in file_name.lower() and "english" not in file_name.lower():
+                            print(f"Skipping selective non-English file: {file_name}")
+                        else:
+                            getlink(url, file_name)
+                    else:
+                        # If file_name is not found, download the file
                         file_name = generate_random_filename()
-                    getlink(url, file_name)
+                        getlink(url, file_name)
